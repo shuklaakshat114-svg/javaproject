@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Performance Reports - HealthCart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/healthcart.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{layout/main :: body}">
+    <div th:fragment="content">
+        <div class="container py-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-graph-up me-2 text-primary"></i>Sales Performance & Reports</h2>
+                    <span class="text-muted small">Server-side Java generated analytics & real-time revenue indicators (0% JavaScript charting)</span>
+                </div>
+                <div>
+                    <span class="badge bg-teal-subtle text-teal border p-2" style="background-color: #ccfbf1; color: #0f766e;">
+                        <i class="bi bi-cpu me-1"></i> Rendered by Java SvgChartService
+                    </span>
+                </div>
+            </div>
+
+            <!-- Top Highlights Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <small class="text-muted text-uppercase fw-bold">Aggregate Revenue</small>
+                        <h3 class="fw-extrabold text-dark mt-1 mb-0">₹[[${totalRevenue}]]</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <small class="text-muted text-uppercase fw-bold">Total Dispatched Units</small>
+                        <h3 class="fw-extrabold text-dark mt-1 mb-0">[[${totalUnits}]] units</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <small class="text-muted text-uppercase fw-bold">Total Customer Invoices</small>
+                        <h3 class="fw-extrabold text-dark mt-1 mb-0">[[${totalOrders}]] orders</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section (Pure Java SVG - PRD 4.3) -->
+            <div class="row g-4 mb-4">
+                <!-- 7-Day Revenue Trend Chart -->
+                <div class="col-lg-7">
+                    <div class="card border rounded-4 shadow-sm bg-white p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-line text-teal me-2" style="color: #0d9488;"></i>Daily Revenue Trend (Last 7 Days)</h5>
+                            <span class="badge bg-light text-muted border small">Server-rendered SVG</span>
+                        </div>
+                        <div class="p-2 border rounded-3 bg-light text-center" th:utext="${trendSvg}">
+                            <!-- SVG injected here by Java backend -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products Horizontal Bar Chart -->
+                <div class="col-lg-5">
+                    <div class="card border rounded-4 shadow-sm bg-white p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-trophy text-primary me-2"></i>Top Selling Products</h5>
+                            <span class="badge bg-light text-muted border small">By Units Sold</span>
+                        </div>
+                        <div class="p-2 border rounded-3 bg-light text-center" th:utext="${topProductsSvg}">
+                            <!-- SVG injected here by Java backend -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Products Data Breakdown Table -->
+            <div class="card border rounded-4 shadow-sm bg-white p-4">
+                <h5 class="fw-bold mb-3">Top Products Revenue Breakdown</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity Sold</th>
+                                <th>Revenue Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${topProductsList.empty}">
+                                <td colspan="3" class="text-center text-muted py-3">No product sales data available</td>
+                            </tr>
+                            <tr th:each="stat : ${topProductsList}">
+                                <td class="fw-semibold text-dark" th:text="${stat.name}">Product</td>
+                                <td class="fw-bold text-primary">[[${stat.quantitySold}]] units</td>
+                                <td class="fw-bold text-dark">₹[[${stat.revenue}]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

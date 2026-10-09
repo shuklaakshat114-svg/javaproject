@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout - HealthCart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/healthcart.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{layout/main :: body}">
+    <div th:fragment="content">
+        <div class="container py-3">
+            <h2 class="fw-bold mb-4"><i class="bi bi-shield-check me-2 text-primary"></i>Checkout & Order Review</h2>
+
+            <form th:action="@{/checkout}" method="post" enctype="multipart/form-data" id="checkoutForm" onsubmit="document.getElementById('submitOrderBtn').disabled = true;">
+                <input type="hidden" name="idempotencyKey" th:value="${idempotencyKey}">
+
+                <div class="row g-4">
+                    <!-- Left Column: Address & Prescription -->
+                    <div class="col-lg-8">
+                        <!-- 1. Delivery Address Card -->
+                        <div class="card border rounded-4 shadow-sm bg-white p-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt text-primary me-2"></i>1. Select Delivery Address</h5>
+                                <a th:href="@{/buyer/addresses}" class="btn btn-outline-primary btn-sm">+ Add New Address</a>
+                            </div>
+
+                            <div th:if="${addresses.empty}" class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-1"></i> You do not have any saved delivery address.
+                                <a th:href="@{/buyer/addresses}" class="alert-link fw-bold">Click here to add an address</a> before placing your order.
+                            </div>
+
+                            <div th:unless="${addresses.empty}" class="row g-3">
+                                <div class="col-md-6" th:each="addr, iterStat : ${addresses}">
+                                    <div class="card h-100 p-3 border rounded-3 position-relative">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="addressId" th:id="'addr_' + ${addr.id}" th:value="${addr.id}" th:checked="${addr.isDefault() || iterStat.first}" required>
+                                            <label class="form-check-label w-100" th:for="'addr_' + ${addr.id}">
+                                                <div class="fw-bold text-dark" th:text="${addr.fullName}">Recipient Name</div>
+                                                <div class="small text-muted mt-1" th:text="${addr.line1}">Address line 1</div>
+                                                <div class="small text-muted" th:if="${addr.line2}" th:text="${addr.line2}">Address line 2</div>
+                                                <div class="small text-muted" th:text="${addr.city + ', ' + addr.state + ' - ' + addr.postalCode}">City, State - PIN</div>
+                                                <div class="small text-dark fw-semibold mt-1"><i class="bi bi-telephone me-1"></i> [[${addr.phone}]]</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Prescription Upload (Mandatory if cart has Rx items) -->
+                        <div class="card border rounded-4 shadow-sm bg-white p-4 mb-4" th:if="${cart.hasRxProducts}">
+                            <h5 class="fw-bold mb-2 text-danger"><i class="bi bi-file-earmark-medical me-2"></i>2. Upload Doctor's Prescription (Required)</h5>
+                            <p class="small text-muted mb-3">
+                                Your order contains prescription-only medications. Upload a clear photograph or PDF of a valid prescription signed by a registered medical practitioner.
+                            </p>
+
+                            <div class="p-3 bg-light rounded-3 border">
+                                <label for="prescriptionFile" class="form-label small fw-bold">Select Prescription File (PDF, JPEG, PNG, max 5MB):</label>
+                                <input class="form-control" type="file" id="prescriptionFile" name="prescriptionFile" accept=".pdf,image/jpeg,image/png" required>
+                                <div class="form-text small text-muted mt-2">
+                                    <i class="bi bi-shield-lock me-1"></i> Your document is securely quarantined and reviewed by licensed pharmacists.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Review Order Items -->
+                        <div class="card border rounded-4 shadow-sm bg-white p-4">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-bag-check text-primary me-2"></i>3. Review Items in Order</h5>
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Qty</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="item : ${cart.items}">
+                                            <td>
+                                                <div class="fw-semibold text-dark" th:text="${item.product.name}">Product</div>
+                                                <span th:if="${item.product.rxRequired}" class="badge bg-danger-subtle text-danger small">Rx Required</span>
+                                            </td>
+                                            <td th:text="${item.quantity}">1</td>
+                                            <td class="text-end fw-bold">₹[[${item.product.price * item.quantity}]]</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Cost Breakdown & Place Order -->
+                    <div class="col-lg-4">
+                        <div class="card border rounded-4 shadow-sm bg-white p-4 sticky-top" style="top: 85px;">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2">Payment Breakdown</h5>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Item Subtotal</span>
+                                <span class="fw-semibold">₹[[${cart.subtotal}]]</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">GST & Cess (5%)</span>
+                                <span class="fw-semibold">₹[[${cart.tax}]]</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Shipping Fee</span>
+                                <span class="fw-semibold" th:text="${cart.shippingFee.compareTo(T(java.math.BigDecimal).ZERO) == 0 ? 'FREE' : '₹' + cart.shippingFee}">₹50.00</span>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fw-bold fs-5">Final Amount</span>
+                                <span class="fw-extrabold fs-4 text-dark">₹[[${cart.total}]]</span>
+                            </div>
+
+                            <button type="submit" id="submitOrderBtn" class="btn btn-primary w-100 py-3 fw-bold fs-6 shadow-sm" th:disabled="${addresses.empty}">
+                                <i class="bi bi-lock-fill me-1"></i> Place Order & Continue
+                            </button>
+
+                            <p class="small text-muted text-center mt-3 mb-0">
+                                <i class="bi bi-shield-check text-success me-1"></i> Bank-grade 256-bit SSL encryption. Card data is never saved on HealthCart servers.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

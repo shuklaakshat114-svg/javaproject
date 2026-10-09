@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${productForm.id != null ? 'Edit Product' : 'Add New Product'} + ' - HealthCart'">Product Form - HealthCart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/healthcart.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{layout/main :: body}">
+    <div th:fragment="content">
+        <div class="container py-3">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <a th:href="@{/seller/products}" class="text-decoration-none small text-muted mb-3 d-inline-block">
+                        <i class="bi bi-arrow-left me-1"></i> Back to My Products
+                    </a>
+
+                    <div class="card border rounded-4 shadow-sm bg-white p-4 p-md-5">
+                        <h3 class="fw-bold mb-1" th:text="${productForm.id != null ? 'Edit Healthcare Product' : 'Add New Healthcare Product'}">Product Form</h3>
+                        <p class="text-muted small mb-4">Provide accurate therapeutic details, stock levels, and safety compliance attributes.</p>
+
+                        <form th:action="${productForm.id != null ? '/seller/products/' + productForm.id : '/seller/products'}"
+                              th:object="${productForm}" method="post" enctype="multipart/form-data">
+
+                            <input type="hidden" th:field="*{id}">
+
+                            <!-- Product Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label small fw-bold text-muted">Product / Medicine Name *</label>
+                                <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" id="name" th:field="*{name}" placeholder="e.g. Vitamin D3 60,000 IU Softgels">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+
+                            <!-- Category Selection -->
+                            <div class="mb-3">
+                                <label for="categoryId" class="form-label small fw-bold text-muted">Category *</label>
+                                <select class="form-select" th:classappend="${#fields.hasErrors('categoryId')} ? 'is-invalid'" id="categoryId" th:field="*{categoryId}">
+                                    <option value="">Select a category</option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+                            </div>
+
+                            <!-- Price & Stock Row -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label for="price" class="form-label small fw-bold text-muted">Selling Price (₹) *</label>
+                                    <input type="number" step="0.01" class="form-control" th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'" id="price" th:field="*{price}" placeholder="299.00">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="stock" class="form-label small fw-bold text-muted">Initial Stock Units *</label>
+                                    <input type="number" class="form-control" th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid'" id="stock" th:field="*{stock}" placeholder="50">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="lowStockThreshold" class="form-label small fw-bold text-muted">Low Stock Alert Threshold</label>
+                                    <input type="number" class="form-control" id="lowStockThreshold" th:field="*{lowStockThreshold}" placeholder="5">
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label small fw-bold text-muted">Description & Usage Guidelines</label>
+                                <textarea class="form-control" id="description" th:field="*{description}" rows="4" placeholder="Enter composition, benefits, directions for use, precautions..."></textarea>
+                            </div>
+
+                            <!-- Prescription Required & Active Checkboxes -->
+                            <div class="p-3 bg-light rounded-3 border mb-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="rxRequired" th:field="*{rxRequired}">
+                                    <label class="form-check-label fw-bold text-dark small" for="rxRequired">
+                                        Prescription Required (Schedule H / Rx)
+                                    </label>
+                                    <div class="form-text small text-muted">
+                                        Buyers must upload a valid doctor's prescription before checkout.
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch" th:if="${productForm.id != null}">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="active" th:field="*{active}">
+                                    <label class="form-check-label fw-bold text-dark small" for="active">Published in Catalog</label>
+                                </div>
+                            </div>
+
+                            <!-- Product Image Upload -->
+                            <div class="mb-4">
+                                <label for="image" class="form-label small fw-bold text-muted">Product Image (JPEG, PNG, WebP, max 2MB)</label>
+                                <input class="form-control" type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary px-4 fw-bold">Save Product Listing</button>
+                                <a th:href="@{/seller/products}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

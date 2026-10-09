@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - HealthCart' : 'HealthCart - Trusted Health & Wellness Marketplace'}">HealthCart</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom HealthCart CSS -->
+    <link rel="stylesheet" th:href="@{/css/healthcart.css}">
+</head>
+<body th:fragment="body">
+
+    <!-- Main Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-healthcart sticky-top py-2">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+                <span class="p-2 bg-teal-subtle rounded-3 text-white d-inline-flex" style="background-color: #0d9488;">
+                    <i class="bi bi-heart-pulse-fill fs-5"></i>
+                </span>
+                <span class="navbar-brand-text fs-4">HealthCart</span>
+                <span class="badge brand-badge ms-1">Rx & Wellness</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Search Bar -->
+                <form class="d-flex mx-auto my-2 my-lg-0 col-12 col-lg-5" th:action="@{/products}" method="get">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input class="form-control border-start-0 ps-0 shadow-none" type="search" name="query" th:value="${query}" placeholder="Search medicines, vitamins, wellness essentials..." aria-label="Search">
+                        <button class="btn btn-outline-primary" type="submit">Search</button>
+                    </div>
+                </form>
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/products}"><i class="bi bi-grid me-1"></i> Catalog</a>
+                    </li>
+
+                    <!-- Anonymous User Links -->
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="btn btn-outline-secondary btn-sm px-3" th:href="@{/login}">Sign In</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="btn btn-primary btn-sm px-3" th:href="@{/register}">Register</a>
+                    </li>
+
+                    <!-- Buyer Specific Navigation -->
+                    <li class="nav-item" sec:authorize="hasRole('ROLE_BUYER')">
+                        <a class="nav-link position-relative px-2" th:href="@{/buyer/wishlist}" title="Wishlist">
+                            <i class="bi bi-heart fs-5"></i>
+                            <span th:if="${wishlistCount != null && wishlistCount > 0}" class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" th:text="${wishlistCount}">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ROLE_BUYER')">
+                        <a class="nav-link position-relative px-2" th:href="@{/cart}" title="Cart">
+                            <i class="bi bi-cart3 fs-5"></i>
+                            <span th:if="${cartCount != null && cartCount > 0}" class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-primary" th:text="${cartCount}">0</span>
+                        </a>
+                    </li>
+
+                    <!-- Authenticated Dropdown -->
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 fw-semibold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle fs-5 text-primary"></i>
+                            <span sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <!-- Buyer Menu -->
+                            <li sec:authorize="hasRole('ROLE_BUYER')"><a class="dropdown-item" th:href="@{/buyer/orders}"><i class="bi bi-box-seam me-2"></i> My Orders</a></li>
+                            <li sec:authorize="hasRole('ROLE_BUYER')"><a class="dropdown-item" th:href="@{/buyer/addresses}"><i class="bi bi-geo-alt me-2"></i> Delivery Addresses</a></li>
+                            <li sec:authorize="hasRole('ROLE_BUYER')"><a class="dropdown-item" th:href="@{/buyer/history}"><i class="bi bi-clock-history me-2"></i> Browsing History</a></li>
+
+                            <!-- Seller Menu -->
+                            <li sec:authorize="hasRole('ROLE_SELLER')"><a class="dropdown-item text-primary fw-semibold" th:href="@{/seller/dashboard}"><i class="bi bi-speedometer2 me-2"></i> Seller Dashboard</a></li>
+                            <li sec:authorize="hasRole('ROLE_SELLER')"><a class="dropdown-item" th:href="@{/seller/products}"><i class="bi bi-box me-2"></i> My Products</a></li>
+                            <li sec:authorize="hasRole('ROLE_SELLER')"><a class="dropdown-item" th:href="@{/seller/inventory}"><i class="bi bi-stack me-2"></i> Inventory & Stock</a></li>
+                            <li sec:authorize="hasRole('ROLE_SELLER')"><a class="dropdown-item" th:href="@{/seller/orders}"><i class="bi bi-bag-check me-2"></i> Orders Fulfillment</a></li>
+                            <li sec:authorize="hasRole('ROLE_SELLER')"><a class="dropdown-item" th:href="@{/seller/reports}"><i class="bi bi-graph-up me-2"></i> Sales Reports (Java SVG)</a></li>
+
+                            <!-- Admin Menu -->
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item text-danger fw-semibold" th:href="@{/admin/dashboard}"><i class="bi bi-shield-shaded me-2"></i> Admin Dashboard</a></li>
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i> User Management</a></li>
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item" th:href="@{/admin/products}"><i class="bi bi-grid-3x3 me-2"></i> Product Catalog</a></li>
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item" th:href="@{/admin/orders}"><i class="bi bi-receipt me-2"></i> All Orders</a></li>
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item" th:href="@{/admin/prescriptions}"><i class="bi bi-file-earmark-medical me-2"></i> Prescription Queue</a></li>
+                            <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="dropdown-item" th:href="@{/admin/activity}"><i class="bi bi-journal-text me-2"></i> Audit Activity Log</a></li>
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="px-3 py-1">
+                                    <button class="btn btn-outline-danger btn-sm w-100" type="submit"><i class="bi bi-box-arrow-right me-1"></i> Sign Out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Flash Notification Messages -->
+    <div class="container mt-3">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <span th:text="${successMessage}">Operation successful!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            <span th:text="${errorMessage}">An error occurred.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${infoMessage}" class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-info-circle-fill fs-5"></i>
+            <span th:text="${infoMessage}">Information note.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Main Content Body -->
+    <main class="py-4">
+        <div th:replace="~{::content}"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-heart-pulse-fill fs-5 text-primary"></i>
+                        <span class="fw-bold fs-5 text-dark">HealthCart</span>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        Enterprise Java-powered healthcare marketplace. Licensed pharmacy fulfillment, verifiable prescription validation, and cold-chain compliance.
+                    </p>
+                </div>
+                <div class="col-6 col-md-2">
+                    <h6 class="fw-bold text-dark mb-3">Shop</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/products}">All Products</a></li>
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/products(rxRequired=true)}">Prescription Rx</a></li>
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/products(inStockOnly=true)}">In Stock Items</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md-2">
+                    <h6 class="fw-bold text-dark mb-3">Account</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/login}">Sign In</a></li>
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/register}">Register</a></li>
+                        <li class="mb-2"><a class="text-decoration-none text-muted" th:href="@{/buyer/orders}">Order Tracking</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-md-4">
+                    <h6 class="fw-bold text-dark mb-3">Security & Compliance</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-secondary border p-2"><i class="bi bi-shield-check text-success me-1"></i> OWASP Hardened</span>
+                        <span class="badge bg-light text-secondary border p-2"><i class="bi bi-lock-fill text-primary me-1"></i> Spring Security 6</span>
+                        <span class="badge bg-light text-secondary border p-2"><i class="bi bi-fingerprint text-info me-1"></i> SHA-256 Webhooks</span>
+                    </div>
+                </div>
+            </div>
+            <div class="border-top pt-3 d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
+                <div>&copy; 2026 HealthCart Inc. All rights reserved. Strictly Java 21 LTS backend.</div>
+                <div class="mt-2 mt-md-0">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">System Online: v1.0.0</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JavaScript Bundle (WebJars / CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

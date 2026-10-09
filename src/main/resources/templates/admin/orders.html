@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Orders - HealthCart Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/healthcart.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{layout/main :: body}">
+    <div th:fragment="content">
+        <div class="container py-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-receipt me-2 text-info"></i>Global Orders Governance</h2>
+                    <span class="text-muted small">FR-AD3: Oversee all orders across the marketplace and manage order state transitions</span>
+                </div>
+                <!-- Status & Search Filter Form -->
+                <form th:action="@{/admin/orders}" method="get" class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                    <input type="text" name="query" th:value="${query}" class="form-control form-control-sm" placeholder="Order # or Buyer email...">
+                    <select name="status" class="form-select form-select-sm" style="width: 160px;">
+                        <option value="" th:selected="${selectedStatus == null}">All Statuses</option>
+                        <option th:each="st : ${orderStatuses}" th:value="${st}" th:text="${st.displayName}" th:selected="${selectedStatus == st}"></option>
+                    </select>
+                    <button class="btn btn-outline-primary btn-sm" type="submit">Filter</button>
+                </form>
+            </div>
+
+            <div class="card border rounded-4 shadow-sm bg-white overflow-hidden mb-4">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Order #</th>
+                                <th scope="col">Buyer</th>
+                                <th scope="col">Date Placed</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Payment</th>
+                                <th scope="col" class="pe-4 text-end">Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${orders.content}">
+                                <td class="ps-4 py-3 fw-bold">
+                                    <a th:href="@{'/admin/orders/' + ${order.id}}" class="text-primary text-decoration-none" th:text="${order.orderNumber}">HC-XXXX</a>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark" th:text="${order.buyer.name}">Buyer Name</div>
+                                    <small class="text-muted" th:text="${order.buyer.email}">buyer@email.com</small>
+                                </td>
+                                <td class="small text-muted" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                                <td class="fw-bold text-dark">₹[[${order.totalAmount}]]</td>
+                                <td>
+                                    <span class="badge" th:classappend="${order.status.name() == 'DELIVERED'} ? 'bg-success' : (${order.status.name() == 'CANCELLED' || order.status.name() == 'PAYMENT_FAILED'} ? 'bg-danger' : 'bg-primary')" th:text="${order.status.displayName}">Status</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${order.paymentStatus == 'COMPLETED'} ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'" th:text="${order.paymentStatus}">Status</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a th:href="@{'/admin/orders/' + ${order.id}}" class="btn btn-outline-primary btn-sm">
+                                        Inspect &rarr;
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" aria-label="Orders pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/orders(page=${currentPage - 1}, query=${query}, status=${selectedStatus})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/orders(page=${i}, query=${query}, status=${selectedStatus})}" th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/orders(page=${currentPage + 1}, query=${query}, status=${selectedStatus})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
