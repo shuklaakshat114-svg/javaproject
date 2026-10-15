@@ -51,7 +51,7 @@ public class SecurityConfig {
                         // Role-based protected routes (PRD 9.3)
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/seller/**").hasRole("SELLER")
-                        .requestMatchers("/buyer/**", "/cart/**", "/checkout//**").hasRole("BUYER")
+                        .requestMatchers("/buyer/**", "/cart/**", "/checkout/**").hasRole("BUYER")
                         // Deny by default / authenticate any remaining request
                         .anyRequest().authenticated())
                 .formLogin(form -> form
